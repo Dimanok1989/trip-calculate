@@ -10,3 +10,5 @@ Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.upda
 Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
 Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
 Route::put('/trips/{trip}/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+Route::post('/trips/{trip}/expenses/import-avtodor', [ExpenseController::class, 'importAvtodor'])
+    ->name('expenses.import-avtodor');

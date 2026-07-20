@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
+                'avtodor_import' => fn () => $request->session()->get('avtodor_import'),
             ],
         ];
     }
