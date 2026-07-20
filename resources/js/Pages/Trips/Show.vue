@@ -1,10 +1,12 @@
 <script setup>
 import ExpenseModal from '../../Components/ExpenseModal.vue';
+import ExpenseTypePie from '../../Components/ExpenseTypePie.vue';
 import TripEditModal from '../../Components/TripEditModal.vue';
+import { buildExpenseTypeBreakdown } from '../../utils/expenseTypeBreakdown.js';
 import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
-defineProps({
+const props = defineProps({
     trip: {
         type: Object,
         required: true,
@@ -26,6 +28,8 @@ defineProps({
         required: true,
     },
 });
+
+const expenseTypeSegments = computed(() => buildExpenseTypeBreakdown(props.expenses));
 
 const showExpenseModal = ref(false);
 const editingExpense = ref(null);
@@ -139,6 +143,14 @@ function balanceText(balance) {
             </div>
             <p v-else-if="settlement.total > 0" class="text-sm text-stone-500">Все расчёты сведены.</p>
             <p v-else class="text-sm text-stone-500">Добавьте расходы, чтобы увидеть расчёт.</p>
+        </section>
+
+        <section
+            v-if="expenseTypeSegments.length >= 2"
+            class="mb-8 rounded-xl border border-stone-200 bg-white p-6 shadow-sm"
+        >
+            <h2 class="mb-4 text-xl font-medium text-stone-800">По типам расходов</h2>
+            <ExpenseTypePie :segments="expenseTypeSegments" :format-money="formatMoney" />
         </section>
 
         <section class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
