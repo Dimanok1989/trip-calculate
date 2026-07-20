@@ -54,8 +54,22 @@ function currentTime() {
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
-function fillForm() {
+function emptyForm() {
+    form.defaults({
+        amount: '',
+        type: 'fuel',
+        type_custom: '',
+        traveler_id: '',
+        comment: '',
+        spent_date: '',
+        spent_time: '',
+    });
+    form.reset();
     form.clearErrors();
+}
+
+function fillForm() {
+    emptyForm();
 
     if (props.expense) {
         form.amount = props.expense.amount;
@@ -68,7 +82,6 @@ function fillForm() {
         return;
     }
 
-    form.reset();
     form.type = 'fuel';
     form.traveler_id = props.travelers[0]?.id ?? '';
     form.spent_date = todayDate();
@@ -80,18 +93,25 @@ watch(
     ([open]) => {
         if (open) {
             fillForm();
+            return;
         }
+
+        emptyForm();
     },
 );
 
 function close() {
+    emptyForm();
     emit('close');
 }
 
 function submit() {
     const options = {
         preserveScroll: true,
-        onSuccess: () => close(),
+        onSuccess: () => {
+            emptyForm();
+            close();
+        },
     };
 
     if (isEditing.value) {
