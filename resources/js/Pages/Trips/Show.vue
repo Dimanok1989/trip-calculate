@@ -153,33 +153,39 @@ function balanceText(balance) {
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-left text-sm">
-                    <thead class="border-b border-stone-200 text-stone-500">
+            <div>
+                <table class="expenses-table">
+                    <thead>
                         <tr>
-                            <th class="px-2 py-2 font-medium">Дата</th>
-                            <th class="px-2 py-2 font-medium">Сумма</th>
-                            <th class="px-2 py-2 font-medium">Тип расхода</th>
-                            <th class="px-2 py-2 font-medium">Плательщик</th>
-                            <th class="px-2 py-2 font-medium">Комментарий</th>
-                            <th class="px-2 py-2 font-medium"></th>
+                            <th class="font-medium">Дата</th>
+                            <th class="font-medium">Сумма</th>
+                            <th class="font-medium">Тип расхода</th>
+                            <th class="font-medium">Плательщик</th>
+                            <th class="font-medium">Комментарий</th>
+                            <th class="font-medium"></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="expenses.length === 0">
-                            <td colspan="6" class="px-2 py-6 text-center text-stone-500">Расходов пока нет</td>
+                            <td colspan="6" class="expenses-table__empty">Расходов пока нет</td>
                         </tr>
-                        <tr
-                            v-for="expense in expenses"
-                            :key="expense.id"
-                            class="border-b border-stone-100"
-                        >
-                            <td class="whitespace-nowrap px-2 py-3 text-stone-600">{{ expense.spent_label }}</td>
-                            <td class="px-2 py-3 font-medium text-stone-900">{{ formatMoney(expense.amount) }}</td>
-                            <td class="px-2 py-3 text-stone-700">{{ expense.type_label }}</td>
-                            <td class="px-2 py-3 text-stone-700">{{ expense.payer }}</td>
-                            <td class="px-2 py-3 text-stone-500">{{ expense.comment || '—' }}</td>
-                            <td class="px-2 py-3 text-right">
+                        <tr v-for="expense in expenses" :key="expense.id">
+                            <td data-label="Дата" class="whitespace-nowrap text-stone-600">
+                                {{ expense.spent_label }}
+                            </td>
+                            <td data-label="Сумма" class="font-medium text-stone-900">
+                                {{ formatMoney(expense.amount) }}
+                            </td>
+                            <td data-label="Тип расхода" class="text-stone-700">
+                                {{ expense.type_label }}
+                            </td>
+                            <td data-label="Плательщик" class="text-stone-700">
+                                {{ expense.payer }}
+                            </td>
+                            <td data-label="Комментарий" class="text-stone-500">
+                                {{ expense.comment || '—' }}
+                            </td>
+                            <td class="text-right">
                                 <button
                                     type="button"
                                     class="text-sm font-medium text-teal-700 hover:text-teal-900"
