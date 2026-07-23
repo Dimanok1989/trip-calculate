@@ -19,7 +19,6 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const index = ref(0);
-const isPortrait = ref(false);
 
 const current = computed(() => props.photos[index.value] ?? null);
 const hasMany = computed(() => props.photos.length > 1);
@@ -30,7 +29,6 @@ watch(
         if (open) {
             const max = Math.max(props.photos.length - 1, 0);
             index.value = Math.min(Math.max(props.startIndex, 0), max);
-            isPortrait.value = false;
         }
     },
 );
@@ -45,7 +43,6 @@ function prev() {
     }
 
     index.value = (index.value - 1 + props.photos.length) % props.photos.length;
-    isPortrait.value = false;
 }
 
 function next() {
@@ -54,12 +51,6 @@ function next() {
     }
 
     index.value = (index.value + 1) % props.photos.length;
-    isPortrait.value = false;
-}
-
-function onImageLoad(event) {
-    const img = event.target;
-    isPortrait.value = img.naturalHeight > img.naturalWidth;
 }
 
 function onKeydown(event) {
@@ -125,9 +116,7 @@ onUnmounted(() => {
                 :key="current.url"
                 :src="current.url"
                 :alt="current.alt || ''"
-                class="rounded-lg shadow-lg"
-                :class="isPortrait ? 'h-full max-h-full w-auto max-w-full' : 'h-auto max-h-full w-full max-w-full'"
-                @load="onImageLoad"
+                class="max-h-full max-w-full rounded-lg object-contain shadow-lg"
             />
         </div>
 

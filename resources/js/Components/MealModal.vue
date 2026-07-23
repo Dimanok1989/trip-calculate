@@ -35,6 +35,7 @@ const form = useForm({
 });
 
 const existingPhotos = ref([]);
+const photoInputRef = ref(null);
 const isEditing = computed(() => Boolean(props.meal?.id));
 const deleting = ref(false);
 
@@ -92,6 +93,9 @@ function emptyForm() {
     form.reset();
     form.clearErrors();
     existingPhotos.value = [];
+    if (photoInputRef.value) {
+        photoInputRef.value.value = '';
+    }
 }
 
 function fillForm() {
@@ -142,6 +146,10 @@ function removeItem(index) {
     form.items.splice(index, 1);
 }
 
+function openPhotoPicker() {
+    photoInputRef.value?.click();
+}
+
 function onPhotosSelected(event) {
     const files = Array.from(event.target.files || []);
     form.photos = [...form.photos, ...files];
@@ -169,14 +177,41 @@ function submit() {
             emptyForm();
             close();
         },
+        onFinish: () => {
+            form.transform((data) => data);
+        },
     };
 
+    // PHP не парсит multipart у PUT — шлём POST с method spoofing
     if (isEditing.value) {
-        form.put(`/trips/${props.tripId}/meals/${props.meal.id}`, options);
+        form
+            .transform((data) => {
+                const payload = {
+                    ...data,
+                    _method: 'put',
+                };
+
+                if (!payload.photos?.length) {
+                    delete payload.photos;
+                }
+
+                return payload;
+            })
+            .post(`/trips/${props.tripId}/meals/${props.meal.id}`, options);
         return;
     }
 
-    form.post(`/trips/${props.tripId}/meals`, options);
+    form
+        .transform((data) => {
+            if (!data.photos?.length) {
+                const { photos, ...rest } = data;
+
+                return rest;
+            }
+
+            return data;
+        })
+        .post(`/trips/${props.tripId}/meals`, options);
 }
 
 function destroyMeal() {
@@ -300,15 +335,26 @@ function formatMoney(value) {
                 </div>
 
                 <div>
-                    <label class="mb-1 block text-sm font-medium text-stone-700" for="meal_photos">Фото</label>
+                    <label class="mb-1 block text-sm font-medium text-stone-700">Фото</label>
                     <input
+                        ref="photoInputRef"
                         id="meal_photos"
                         type="file"
                         accept="image/*"
                         multiple
-                        class="w-full text-sm text-stone-600"
+                        class="sr-only"
                         @change="onPhotosSelected"
                     />
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                        @click="openPhotoPicker"
+                    >
+                        <svg class="h-5 w-5 shrink-0 text-stone-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M4.5 3.5A2.5 2.5 0 0 0 2 6v8a2.5 2.5 0 0 0 2.5 2.5h11A2.5 2.5 0 0 0 18 14V6a2.5 2.5 0 0 0-2.5-2.5h-11ZM10 13a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm5.25-6.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                        </svg>
+                        Выбрать фото
+                    </button>
                     <p v-if="form.errors.photos" class="mt-1 text-sm text-red-600">{{ form.errors.photos }}</p>
 
                     <div v-if="existingPhotos.length || form.photos.length" class="mt-3 flex flex-wrap gap-2">

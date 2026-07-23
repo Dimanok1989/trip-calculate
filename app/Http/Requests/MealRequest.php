@@ -19,6 +19,11 @@ class MealRequest extends FormRequest
             $this->merge(['spent_time' => null]);
         }
 
+        $spentTime = $this->input('spent_time');
+        if (is_string($spentTime) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $spentTime) === 1) {
+            $this->merge(['spent_time' => substr($spentTime, 0, 5)]);
+        }
+
         $items = $this->input('items');
 
         if (is_string($items)) {
