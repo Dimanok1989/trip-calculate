@@ -28,7 +28,7 @@ class MealFlowTest extends TestCase
             'spent_time' => '13:00',
             'items' => [],
             'photos' => [UploadedFile::fake()->image('receipt.jpg')],
-        ])->assertRedirect(route('trips.show', $trip));
+        ])->assertRedirect(route('trips.show', ['trip' => $trip, 'tab' => 'meals']));
 
         $meal = Meal::query()->first();
         $this->assertNotNull($meal);
@@ -51,7 +51,7 @@ class MealFlowTest extends TestCase
             'spent_date' => '2026-07-20',
             'spent_time' => null,
             'items' => [],
-        ])->assertRedirect(route('trips.show', $trip));
+        ])->assertRedirect(route('trips.show', ['trip' => $trip, 'tab' => 'meals']));
 
         $meal = Meal::query()->firstOrFail();
 
@@ -67,7 +67,7 @@ class MealFlowTest extends TestCase
                 ['name' => 'Компот', 'amount' => 150, 'traveler_id' => $anna->id],
                 ['name' => 'Сок', 'amount' => 150, 'traveler_id' => $boris->id],
             ],
-        ])->assertRedirect(route('trips.show', $trip));
+        ])->assertRedirect(route('trips.show', ['trip' => $trip, 'tab' => 'meals']));
 
         $meal->refresh();
         $this->assertCount(4, $meal->items);
@@ -126,7 +126,7 @@ class MealFlowTest extends TestCase
         $path = $meal->photos->first()->path;
 
         $this->delete(route('meals.destroy', [$trip, $meal]))
-            ->assertRedirect(route('trips.show', $trip));
+            ->assertRedirect(route('trips.show', ['trip' => $trip, 'tab' => 'meals']));
 
         $this->assertDatabaseMissing('meals', ['id' => $meal->id]);
         Storage::disk('public')->assertMissing($path);

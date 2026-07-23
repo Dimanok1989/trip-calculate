@@ -24,7 +24,7 @@ class MealController extends Controller
             $this->storePhotos($request, $trip, $meal);
         });
 
-        return redirect()->route('trips.show', $trip);
+        return redirect()->route('trips.show', ['trip' => $trip, 'tab' => 'meals']);
     }
 
     public function update(MealRequest $request, Trip $trip, Meal $meal): RedirectResponse
@@ -51,7 +51,7 @@ class MealController extends Controller
             $this->storePhotos($request, $trip, $meal);
         });
 
-        return redirect()->route('trips.show', $trip);
+        return redirect()->route('trips.show', ['trip' => $trip, 'tab' => 'meals']);
     }
 
     public function destroy(Trip $trip, Meal $meal): RedirectResponse
@@ -66,7 +66,7 @@ class MealController extends Controller
             $meal->delete();
         });
 
-        return redirect()->route('trips.show', $trip);
+        return redirect()->route('trips.show', ['trip' => $trip, 'tab' => 'meals']);
     }
 
     private function storePhotos(MealRequest $request, Trip $trip, Meal $meal): void

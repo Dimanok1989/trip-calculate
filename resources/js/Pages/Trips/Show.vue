@@ -3,9 +3,10 @@ import AutodorImportModal from '../../Components/AutodorImportModal.vue';
 import ExpenseModal from '../../Components/ExpenseModal.vue';
 import ExpenseTypePie from '../../Components/ExpenseTypePie.vue';
 import MealModal from '../../Components/MealModal.vue';
+import PhotoLightbox from '../../Components/PhotoLightbox.vue';
 import TripEditModal from '../../Components/TripEditModal.vue';
 import { buildExpenseTypeBreakdown } from '../../utils/expenseTypeBreakdown.js';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
@@ -42,7 +43,33 @@ const props = defineProps({
 const expenseTypeSegments = computed(() => buildExpenseTypeBreakdown(props.expenses));
 const page = usePage();
 
-const activeLedgerTab = ref('expenses');
+function tabFromUrl(url) {
+    const query = url.includes('?') ? url.slice(url.indexOf('?') + 1) : '';
+    const tab = new URLSearchParams(query).get('tab');
+
+    return tab === 'meals' ? 'meals' : 'expenses';
+}
+
+const activeLedgerTab = computed(() => tabFromUrl(page.url));
+
+function setLedgerTab(tab) {
+    const next = tab === 'meals' ? 'meals' : 'expenses';
+
+    if (next === activeLedgerTab.value) {
+        return;
+    }
+
+    router.get(
+        `/trips/${props.trip.id}`,
+        next === 'expenses' ? {} : { tab: next },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+}
+
 const showExpenseModal = ref(false);
 const showMealModal = ref(false);
 const showAutodorModal = ref(false);
@@ -80,6 +107,34 @@ function openEditMeal(meal) {
 function closeMealModal() {
     showMealModal.value = false;
     editingMeal.value = null;
+}
+
+const mealTablePhotos = computed(() =>
+    props.meals.flatMap((meal) =>
+        (meal.photos || []).map((photo) => ({
+            id: photo.id,
+            url: photo.url,
+            alt: meal.title,
+        })),
+    ),
+);
+
+const showPhotoLightbox = ref(false);
+const photoLightboxIndex = ref(0);
+
+function openMealPhoto(meal, photo) {
+    const index = mealTablePhotos.value.findIndex((item) => item.id === photo.id);
+
+    if (index < 0) {
+        return;
+    }
+
+    photoLightboxIndex.value = index;
+    showPhotoLightbox.value = true;
+}
+
+function closePhotoLightbox() {
+    showPhotoLightbox.value = false;
 }
 
 function formatMoney(value) {
@@ -222,7 +277,7 @@ function mealBalanceText(row) {
                                 ? 'bg-white text-teal-900 shadow-sm'
                                 : 'text-stone-600 hover:text-stone-900'
                         "
-                        @click="activeLedgerTab = 'expenses'"
+                        @click="setLedgerTab('expenses')"
                     >
                         Расходы
                     </button>
@@ -234,7 +289,7 @@ function mealBalanceText(row) {
                                 ? 'bg-white text-teal-900 shadow-sm'
                                 : 'text-stone-600 hover:text-stone-900'
                         "
-                        @click="activeLedgerTab = 'meals'"
+                        @click="setLedgerTab('meals')"
                     >
                         Питание
                     </button>
@@ -413,6 +468,7 @@ function mealBalanceText(row) {
                         <thead>
                             <tr>
                                 <th class="font-medium">Дата</th>
+                                <th class="font-medium">Фото</th>
                                 <th class="font-medium">Наименование</th>
                                 <th class="font-medium">Сумма</th>
                                 <th class="font-medium">Плательщик</th>
@@ -422,20 +478,38 @@ function mealBalanceText(row) {
                         </thead>
                         <tbody>
                             <tr v-if="meals.length === 0">
-                                <td colspan="6" class="expenses-table__empty">Записей о питании пока нет</td>
+                                <td colspan="7" class="expenses-table__empty">Записей о питании пока нет</td>
                             </tr>
                             <tr v-for="meal in meals" :key="meal.id">
                                 <td data-label="Дата" class="whitespace-nowrap text-stone-600">
                                     {{ meal.spent_label }}
                                 </td>
-                                <td data-label="Наименование" class="text-stone-800">
-                                    <span>{{ meal.title }}</span>
-                                    <span
+                                <td data-label="Фото" class="w-16">
+                                    <button
                                         v-if="meal.photos?.length"
-                                        class="ml-1 text-xs text-stone-400"
+                                        type="button"
+                                        class="relative inline-block h-12 w-12"
+                                        :title="meal.title"
+                                        @click="openMealPhoto(meal, meal.photos[0])"
                                     >
-                                        · {{ meal.photos.length }} фото
-                                    </span>
+                                        <span class="block h-full w-full overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
+                                            <img
+                                                :src="meal.photos[0].url"
+                                                :alt="meal.title"
+                                                class="h-full w-full object-cover"
+                                            />
+                                        </span>
+                                        <span
+                                            v-if="meal.photos.length > 1"
+                                            class="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-700 px-1 text-[10px] font-semibold leading-none text-white shadow"
+                                        >
+                                            +{{ meal.photos.length - 1 }}
+                                        </span>
+                                    </button>
+                                    <span v-else class="text-stone-400">—</span>
+                                </td>
+                                <td data-label="Наименование" class="text-stone-800">
+                                    {{ meal.title }}
                                 </td>
                                 <td data-label="Сумма" class="font-medium text-stone-900">
                                     {{ formatMoney(meal.amount) }}
@@ -485,6 +559,13 @@ function mealBalanceText(row) {
             :travelers="travelers"
             :meal="editingMeal"
             @close="closeMealModal"
+        />
+
+        <PhotoLightbox
+            :show="showPhotoLightbox"
+            :photos="mealTablePhotos"
+            :start-index="photoLightboxIndex"
+            @close="closePhotoLightbox"
         />
 
         <TripEditModal
