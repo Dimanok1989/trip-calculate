@@ -120,9 +120,11 @@ class MealRequest extends FormRequest
             $amount = round((float) $this->input('amount'), 2);
 
             if (abs($itemsTotal - $amount) >= 0.009) {
+                $diff = round($amount - $itemsTotal, 2);
+                $label = $diff < 0 ? 'Перераспределено' : 'Осталось распределить';
                 $validator->errors()->add(
                     'items',
-                    'Сумма позиций должна равняться общей сумме (сейчас '.$itemsTotal.' из '.$amount.').'
+                    'Сумма позиций должна равняться общей сумме ('.$label.' '.$diff.').'
                 );
             }
         });

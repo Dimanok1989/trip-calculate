@@ -451,6 +451,13 @@ function formatMoney(value) {
                                 </select>
                             </div>
                         </div>
+                        <button
+                            type="button"
+                            class="text-sm font-medium text-teal-700 hover:text-teal-900"
+                            @click="addItem"
+                        >
+                            + Добавить
+                        </button>
                     </div>
 
                     <p
@@ -463,7 +470,7 @@ function formatMoney(value) {
                             Осталось распределить {{ formatMoney(remaining) }}
                         </template>
                         <template v-else>
-                            Превышение на {{ formatMoney(Math.abs(remaining)) }}
+                            Перераспределено {{ formatMoney(remaining) }}
                         </template>
                     </p>
                     <p v-if="form.errors.items" class="mt-1 text-sm text-red-600">{{ form.errors.items }}</p>
