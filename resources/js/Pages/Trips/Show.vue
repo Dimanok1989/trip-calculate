@@ -99,7 +99,21 @@ function balanceText(balance) {
         </div>
 
         <section class="mb-8 rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 text-xl font-medium text-stone-800">Расчёт</h2>
+            <div class="mb-4 flex items-center justify-between gap-2 sm:gap-3">
+                <h2 class="min-w-0 text-xl font-medium text-stone-800">Расчёт</h2>
+                <button
+                    type="button"
+                    class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-teal-700 p-2 text-sm font-medium text-white hover:bg-teal-800 sm:px-4 sm:py-2"
+                    title="Добавить расход"
+                    aria-label="Добавить расход"
+                    @click="openCreateExpense"
+                >
+                    <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path d="M10 3.75a.75.75 0 0 1 .75.75v4.75H15.5a.75.75 0 0 1 0 1.5h-4.75V15.5a.75.75 0 0 1-1.5 0v-4.75H4.5a.75.75 0 0 1 0-1.5h4.75V4.5A.75.75 0 0 1 10 3.75Z" />
+                    </svg>
+                    <span class="hidden sm:inline">Добавить расход</span>
+                </button>
+            </div>
 
             <div class="mb-4 grid gap-3 sm:grid-cols-2">
                 <div class="rounded-lg bg-teal-50 px-4 py-3">
