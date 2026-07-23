@@ -159,22 +159,33 @@ function balanceText(balance) {
         </section>
 
         <section class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
-            <div class="mb-4 flex items-center justify-between gap-3">
-                <h2 class="text-xl font-medium text-stone-800">Расходы</h2>
-                <div class="flex flex-wrap items-center gap-2">
+            <div class="mb-4 flex items-center justify-between gap-2 sm:gap-3">
+                <h2 class="min-w-0 text-xl font-medium text-stone-800">Расходы</h2>
+                <div class="flex shrink-0 flex-nowrap items-center gap-2">
                     <button
                         type="button"
-                        class="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 p-2 text-sm font-medium text-stone-700 hover:bg-stone-50 sm:px-4 sm:py-2"
+                        title="Импорт Автодор"
+                        aria-label="Импорт Автодор"
                         @click="showAutodorModal = true"
                     >
-                        Импорт Автодор
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M9.25 3.75a.75.75 0 0 1 1.5 0v7.19l2.22-2.22a.75.75 0 1 1 1.06 1.06l-3.5 3.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.22 2.22V3.75Z" />
+                            <path d="M3.5 12.75a.75.75 0 0 1 .75.75v1.5A1.5 1.5 0 0 0 5.75 16.5h8.5a1.5 1.5 0 0 0 1.5-1.5v-1.5a.75.75 0 0 1 1.5 0v1.5a3 3 0 0 1-3 3h-8.5a3 3 0 0 1-3-3v-1.5a.75.75 0 0 1 .75-.75Z" />
+                        </svg>
+                        <span class="hidden sm:inline">Импорт Автодор</span>
                     </button>
                     <button
                         type="button"
-                        class="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 p-2 text-sm font-medium text-white hover:bg-teal-800 sm:px-4 sm:py-2"
+                        title="Добавить расход"
+                        aria-label="Добавить расход"
                         @click="openCreateExpense"
                     >
-                        Добавить расход
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M10 3.75a.75.75 0 0 1 .75.75v4.75H15.5a.75.75 0 0 1 0 1.5h-4.75V15.5a.75.75 0 0 1-1.5 0v-4.75H4.5a.75.75 0 0 1 0-1.5h4.75V4.5A.75.75 0 0 1 10 3.75Z" />
+                        </svg>
+                        <span class="hidden sm:inline">Добавить расход</span>
                     </button>
                 </div>
             </div>
