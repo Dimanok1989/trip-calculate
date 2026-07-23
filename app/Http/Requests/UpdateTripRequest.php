@@ -67,14 +67,18 @@ class UpdateTripRequest extends FormRequest
             $removedWithExpenses = Traveler::query()
                 ->where('trip_id', $trip->id)
                 ->whereNotIn('id', $keptIds ?: [0])
-                ->whereHas('expenses')
+                ->where(function ($query) {
+                    $query->whereHas('expenses')
+                        ->orWhereHas('meals')
+                        ->orWhereHas('mealItems');
+                })
                 ->pluck('name');
 
             if ($removedWithExpenses->isNotEmpty()) {
                 $names = $removedWithExpenses->implode(', ');
                 $validator->errors()->add(
                     'travelers',
-                    "Нельзя удалить участников с расходами: {$names}."
+                    "Нельзя удалить участников с расходами или питанием: {$names}."
                 );
             }
         });

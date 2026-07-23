@@ -44,6 +44,7 @@ watch(
             id: traveler.id,
             name: traveler.name,
             expenses_count: traveler.expenses_count ?? 0,
+            meals_count: traveler.meals_count ?? 0,
         }));
     },
 );
@@ -53,7 +54,12 @@ function addTraveler() {
         id: null,
         name: '',
         expenses_count: 0,
+        meals_count: 0,
     });
+}
+
+function travelerIsLocked(row) {
+    return (row.expenses_count ?? 0) > 0 || (row.meals_count ?? 0) > 0;
 }
 
 function removeTraveler(index) {
@@ -63,7 +69,7 @@ function removeTraveler(index) {
         return;
     }
 
-    if (row.expenses_count > 0) {
+    if (travelerIsLocked(row)) {
         return;
     }
 
@@ -140,7 +146,7 @@ function submit() {
                                 :placeholder="`Участник ${index + 1}`"
                             />
                             <button
-                                v-if="form.travelers.length > 2 && traveler.expenses_count === 0"
+                                v-if="form.travelers.length > 2 && !travelerIsLocked(traveler)"
                                 type="button"
                                 class="rounded-lg border border-stone-300 px-3 text-stone-500 hover:bg-stone-50"
                                 title="Удалить участника"
@@ -149,9 +155,9 @@ function submit() {
                                 ×
                             </button>
                             <span
-                                v-else-if="traveler.expenses_count > 0"
+                                v-else-if="travelerIsLocked(traveler)"
                                 class="flex items-center whitespace-nowrap px-1 text-xs text-stone-400"
-                                title="Есть расходы — удалить нельзя"
+                                title="Есть расходы или питание — удалить нельзя"
                             >
                                 есть траты
                             </span>

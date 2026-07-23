@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\MealController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,3 +13,6 @@ Route::post('/trips/{trip}/expenses', [ExpenseController::class, 'store'])->name
 Route::put('/trips/{trip}/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
 Route::post('/trips/{trip}/expenses/import-avtodor', [ExpenseController::class, 'importAvtodor'])
     ->name('expenses.import-avtodor');
+Route::post('/trips/{trip}/meals', [MealController::class, 'store'])->name('meals.store');
+Route::put('/trips/{trip}/meals/{meal}', [MealController::class, 'update'])->name('meals.update');
+Route::delete('/trips/{trip}/meals/{meal}', [MealController::class, 'destroy'])->name('meals.destroy');

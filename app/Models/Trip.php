@@ -18,4 +18,10 @@ class Trip extends Model
     {
         return $this->hasMany(Expense::class);
     }
+
+    public function meals(): HasMany
+    {
+        return $this->hasMany(Meal::class);
+    }
 }
+

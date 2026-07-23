@@ -2,6 +2,7 @@
 import AutodorImportModal from '../../Components/AutodorImportModal.vue';
 import ExpenseModal from '../../Components/ExpenseModal.vue';
 import ExpenseTypePie from '../../Components/ExpenseTypePie.vue';
+import MealModal from '../../Components/MealModal.vue';
 import TripEditModal from '../../Components/TripEditModal.vue';
 import { buildExpenseTypeBreakdown } from '../../utils/expenseTypeBreakdown.js';
 import { Link, usePage } from '@inertiajs/vue3';
@@ -20,6 +21,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    meals: {
+        type: Array,
+        default: () => [],
+    },
     expenseTypes: {
         type: Object,
         default: () => ({}),
@@ -28,14 +33,21 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    mealSettlement: {
+        type: Object,
+        required: true,
+    },
 });
 
 const expenseTypeSegments = computed(() => buildExpenseTypeBreakdown(props.expenses));
 const page = usePage();
 
+const activeLedgerTab = ref('expenses');
 const showExpenseModal = ref(false);
+const showMealModal = ref(false);
 const showAutodorModal = ref(false);
 const editingExpense = ref(null);
+const editingMeal = ref(null);
 const showTripModal = ref(false);
 
 const avtodorImport = computed(() => page.props.flash?.avtodor_import ?? null);
@@ -55,6 +67,21 @@ function closeExpenseModal() {
     editingExpense.value = null;
 }
 
+function openCreateMeal() {
+    editingMeal.value = null;
+    showMealModal.value = true;
+}
+
+function openEditMeal(meal) {
+    editingMeal.value = meal;
+    showMealModal.value = true;
+}
+
+function closeMealModal() {
+    showMealModal.value = false;
+    editingMeal.value = null;
+}
+
 function formatMoney(value) {
     return new Intl.NumberFormat('ru-RU', {
         style: 'currency',
@@ -70,6 +97,18 @@ function balanceText(balance) {
 
     if (balance < -0.009) {
         return `должен ${formatMoney(Math.abs(balance))}`;
+    }
+
+    return 'расчёт сведён';
+}
+
+function mealBalanceText(row) {
+    if (row.balance > 0.009) {
+        return `ему должны ${formatMoney(row.balance)}`;
+    }
+
+    if (row.balance < -0.009) {
+        return `должен ${formatMoney(Math.abs(row.balance))}`;
     }
 
     return 'расчёт сведён';
@@ -173,9 +212,35 @@ function balanceText(balance) {
         </section>
 
         <section class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
-            <div class="mb-4 flex items-center justify-between gap-2 sm:gap-3">
-                <h2 class="min-w-0 text-xl font-medium text-stone-800">Расходы</h2>
-                <div class="flex shrink-0 flex-nowrap items-center gap-2">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex gap-1 rounded-lg bg-stone-100 p-1">
+                    <button
+                        type="button"
+                        class="rounded-md px-3 py-1.5 text-sm font-medium transition"
+                        :class="
+                            activeLedgerTab === 'expenses'
+                                ? 'bg-white text-teal-900 shadow-sm'
+                                : 'text-stone-600 hover:text-stone-900'
+                        "
+                        @click="activeLedgerTab = 'expenses'"
+                    >
+                        Расходы
+                    </button>
+                    <button
+                        type="button"
+                        class="rounded-md px-3 py-1.5 text-sm font-medium transition"
+                        :class="
+                            activeLedgerTab === 'meals'
+                                ? 'bg-white text-teal-900 shadow-sm'
+                                : 'text-stone-600 hover:text-stone-900'
+                        "
+                        @click="activeLedgerTab = 'meals'"
+                    >
+                        Питание
+                    </button>
+                </div>
+
+                <div v-if="activeLedgerTab === 'expenses'" class="flex shrink-0 flex-nowrap items-center gap-2">
                     <button
                         type="button"
                         class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 p-2 text-sm font-medium text-stone-700 hover:bg-stone-50 sm:px-4 sm:py-2"
@@ -202,74 +267,200 @@ function balanceText(balance) {
                         <span class="hidden sm:inline">Добавить расход</span>
                     </button>
                 </div>
+
+                <div v-else class="flex shrink-0 flex-nowrap items-center gap-2">
+                    <button
+                        type="button"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 p-2 text-sm font-medium text-white hover:bg-teal-800 sm:px-4 sm:py-2"
+                        title="Добавить питание"
+                        aria-label="Добавить питание"
+                        @click="openCreateMeal"
+                    >
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M10 3.75a.75.75 0 0 1 .75.75v4.75H15.5a.75.75 0 0 1 0 1.5h-4.75V15.5a.75.75 0 0 1-1.5 0v-4.75H4.5a.75.75 0 0 1 0-1.5h4.75V4.5A.75.75 0 0 1 10 3.75Z" />
+                        </svg>
+                        <span class="hidden sm:inline">Добавить питание</span>
+                    </button>
+                </div>
             </div>
 
-            <div
-                v-if="avtodorImport"
-                class="mb-4 space-y-2"
-            >
-                <div class="rounded-lg bg-teal-50 px-4 py-3 text-sm text-teal-900">
-                    Импорт Автодор: добавлено {{ avtodorImport.created }}
-                    <span v-if="avtodorImport.skipped_zero">
-                        , нулевых пропущено {{ avtodorImport.skipped_zero }}
-                    </span>
-                </div>
+            <template v-if="activeLedgerTab === 'expenses'">
                 <div
-                    v-if="avtodorImport.duplicates?.length"
-                    class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                    v-if="avtodorImport"
+                    class="mb-4 space-y-2"
                 >
-                    <p class="font-medium">Предупреждение: пропущены дубликаты (дата и сумма уже есть):</p>
-                    <ul class="mt-1 list-disc pl-5">
-                        <li v-for="(dup, i) in avtodorImport.duplicates" :key="i">{{ dup.label }}</li>
+                    <div class="rounded-lg bg-teal-50 px-4 py-3 text-sm text-teal-900">
+                        Импорт Автодор: добавлено {{ avtodorImport.created }}
+                        <span v-if="avtodorImport.skipped_zero">
+                            , нулевых пропущено {{ avtodorImport.skipped_zero }}
+                        </span>
+                    </div>
+                    <div
+                        v-if="avtodorImport.duplicates?.length"
+                        class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                    >
+                        <p class="font-medium">Предупреждение: пропущены дубликаты (дата и сумма уже есть):</p>
+                        <ul class="mt-1 list-disc pl-5">
+                            <li v-for="(dup, i) in avtodorImport.duplicates" :key="i">{{ dup.label }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div>
+                    <table class="expenses-table">
+                        <thead>
+                            <tr>
+                                <th class="font-medium">Дата</th>
+                                <th class="font-medium">Сумма</th>
+                                <th class="font-medium">Тип расхода</th>
+                                <th class="font-medium">Плательщик</th>
+                                <th class="font-medium">Комментарий</th>
+                                <th class="font-medium"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-if="expenses.length === 0">
+                                <td colspan="6" class="expenses-table__empty">Расходов пока нет</td>
+                            </tr>
+                            <tr v-for="expense in expenses" :key="expense.id">
+                                <td data-label="Дата" class="whitespace-nowrap text-stone-600">
+                                    {{ expense.spent_label }}
+                                </td>
+                                <td data-label="Сумма" class="font-medium text-stone-900">
+                                    {{ formatMoney(expense.amount) }}
+                                </td>
+                                <td data-label="Тип расхода" class="text-stone-700">
+                                    {{ expense.type_label }}
+                                </td>
+                                <td data-label="Плательщик" class="text-stone-700">
+                                    {{ expense.payer }}
+                                </td>
+                                <td data-label="Комментарий" class="text-stone-500">
+                                    {{ expense.comment || '—' }}
+                                </td>
+                                <td class="text-right">
+                                    <button
+                                        type="button"
+                                        class="text-sm font-medium text-teal-700 hover:text-teal-900"
+                                        @click="openEditExpense(expense)"
+                                    >
+                                        Изменить
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+
+            <template v-else>
+                <div class="mb-4 space-y-3">
+                    <div
+                        v-if="mealSettlement.incomplete_count > 0"
+                        class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                    >
+                        Есть {{ mealSettlement.incomplete_count }}
+                        {{ mealSettlement.incomplete_count === 1 ? 'поход без позиций' : 'походов без позиций' }}
+                        — они не участвуют в расчёте долгов.
+                    </div>
+
+                    <div v-if="mealSettlement.settlements.length" class="space-y-1">
+                        <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                            Кто кому должен
+                        </h3>
+                        <ul class="space-y-1">
+                            <li
+                                v-for="(item, index) in mealSettlement.settlements"
+                                :key="index"
+                                class="rounded-lg bg-amber-50 px-3 py-2 text-stone-800"
+                            >
+                                <strong>{{ item.from }}</strong> → <strong>{{ item.to }}</strong>:
+                                {{ formatMoney(item.amount) }}
+                            </li>
+                        </ul>
+                    </div>
+                    <p v-else-if="mealSettlement.total > 0" class="text-sm text-stone-500">
+                        Все расчёты по питанию сведены.
+                    </p>
+                    <p v-else class="text-sm text-stone-500">
+                        Добавьте питание с позициями, чтобы увидеть расчёт.
+                    </p>
+
+                    <ul v-if="mealSettlement.total > 0" class="space-y-2 border-t border-stone-100 pt-3">
+                        <li
+                            v-for="row in mealSettlement.balances"
+                            :key="row.traveler_id"
+                            class="flex flex-wrap items-baseline justify-between gap-2 text-sm"
+                        >
+                            <span class="font-medium text-stone-800">{{ row.name }}</span>
+                            <span class="text-stone-600">
+                                оплатил {{ formatMoney(row.paid) }}, съел {{ formatMoney(row.consumed) }} —
+                                <span
+                                    :class="{
+                                        'text-emerald-700': row.balance > 0,
+                                        'text-amber-700': row.balance < 0,
+                                    }"
+                                >
+                                    {{ mealBalanceText(row) }}
+                                </span>
+                            </span>
+                        </li>
                     </ul>
                 </div>
-            </div>
 
-            <div>
-                <table class="expenses-table">
-                    <thead>
-                        <tr>
-                            <th class="font-medium">Дата</th>
-                            <th class="font-medium">Сумма</th>
-                            <th class="font-medium">Тип расхода</th>
-                            <th class="font-medium">Плательщик</th>
-                            <th class="font-medium">Комментарий</th>
-                            <th class="font-medium"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-if="expenses.length === 0">
-                            <td colspan="6" class="expenses-table__empty">Расходов пока нет</td>
-                        </tr>
-                        <tr v-for="expense in expenses" :key="expense.id">
-                            <td data-label="Дата" class="whitespace-nowrap text-stone-600">
-                                {{ expense.spent_label }}
-                            </td>
-                            <td data-label="Сумма" class="font-medium text-stone-900">
-                                {{ formatMoney(expense.amount) }}
-                            </td>
-                            <td data-label="Тип расхода" class="text-stone-700">
-                                {{ expense.type_label }}
-                            </td>
-                            <td data-label="Плательщик" class="text-stone-700">
-                                {{ expense.payer }}
-                            </td>
-                            <td data-label="Комментарий" class="text-stone-500">
-                                {{ expense.comment || '—' }}
-                            </td>
-                            <td class="text-right">
-                                <button
-                                    type="button"
-                                    class="text-sm font-medium text-teal-700 hover:text-teal-900"
-                                    @click="openEditExpense(expense)"
-                                >
-                                    Изменить
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <div>
+                    <table class="expenses-table">
+                        <thead>
+                            <tr>
+                                <th class="font-medium">Дата</th>
+                                <th class="font-medium">Наименование</th>
+                                <th class="font-medium">Сумма</th>
+                                <th class="font-medium">Плательщик</th>
+                                <th class="font-medium">Статус</th>
+                                <th class="font-medium"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-if="meals.length === 0">
+                                <td colspan="6" class="expenses-table__empty">Записей о питании пока нет</td>
+                            </tr>
+                            <tr v-for="meal in meals" :key="meal.id">
+                                <td data-label="Дата" class="whitespace-nowrap text-stone-600">
+                                    {{ meal.spent_label }}
+                                </td>
+                                <td data-label="Наименование" class="text-stone-800">
+                                    <span>{{ meal.title }}</span>
+                                    <span
+                                        v-if="meal.photos?.length"
+                                        class="ml-1 text-xs text-stone-400"
+                                    >
+                                        · {{ meal.photos.length }} фото
+                                    </span>
+                                </td>
+                                <td data-label="Сумма" class="font-medium text-stone-900">
+                                    {{ formatMoney(meal.amount) }}
+                                </td>
+                                <td data-label="Плательщик" class="text-stone-700">
+                                    {{ meal.payer }}
+                                </td>
+                                <td data-label="Статус" class="text-stone-500">
+                                    <span v-if="meal.items_complete" class="text-emerald-700">позиции заполнены</span>
+                                    <span v-else class="text-amber-700">без позиций</span>
+                                </td>
+                                <td class="text-right">
+                                    <button
+                                        type="button"
+                                        class="text-sm font-medium text-teal-700 hover:text-teal-900"
+                                        @click="openEditMeal(meal)"
+                                    >
+                                        Изменить
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
         </section>
 
         <AutodorImportModal
@@ -286,6 +477,14 @@ function balanceText(balance) {
             :expense-types="expenseTypes"
             :expense="editingExpense"
             @close="closeExpenseModal"
+        />
+
+        <MealModal
+            :show="showMealModal"
+            :trip-id="trip.id"
+            :travelers="travelers"
+            :meal="editingMeal"
+            @close="closeMealModal"
         />
 
         <TripEditModal

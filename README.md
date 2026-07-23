@@ -17,6 +17,7 @@ php artisan key:generate
 # убедитесь, что DB_CONNECTION=sqlite и есть файл database/database.sqlite
 type nul > database\database.sqlite   # Windows
 php artisan migrate
+php artisan storage:link
 npm install
 npm run build
 ```
@@ -43,4 +44,5 @@ composer dev
 - Создание поездки с 2+ путешественниками
 - Выбор существующей поездки
 - Добавление расходов (бензин, платная дорога, жильё, другое)
+- Учёт питания: походы с фото, позициями по участникам и отдельным расчётом долгов
 - Расчёт балансов и подсказок «кто кому должен»
