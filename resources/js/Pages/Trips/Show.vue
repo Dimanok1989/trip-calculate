@@ -484,11 +484,11 @@ function mealBalanceText(row) {
                                 <td data-label="Дата" class="whitespace-nowrap text-stone-600">
                                     {{ meal.spent_label }}
                                 </td>
-                                <td data-label="Фото" class="w-16">
+                                <td data-label="Фото" class="md:w-16">
                                     <button
                                         v-if="meal.photos?.length"
                                         type="button"
-                                        class="relative inline-block h-12 w-12"
+                                        class="relative ml-auto inline-block h-12 w-12 min-w-12 shrink-0"
                                         :title="meal.title"
                                         @click="openMealPhoto(meal, meal.photos[0])"
                                     >

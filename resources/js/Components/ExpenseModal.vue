@@ -126,16 +126,17 @@ function submit() {
 <template>
     <div
         v-if="show"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
+        class="scrollbar-none fixed inset-0 z-50 overflow-y-auto bg-stone-900/50"
         @click.self="close"
     >
-        <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true">
-            <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-stone-800">
-                    {{ isEditing ? 'Редактировать расход' : 'Добавить расход' }}
-                </h3>
-                <button type="button" class="text-stone-400 hover:text-stone-700" @click="close">×</button>
-            </div>
+        <div class="flex min-h-full items-center justify-center p-4" @click.self="close">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-stone-800">
+                        {{ isEditing ? 'Редактировать расход' : 'Добавить расход' }}
+                    </h3>
+                    <button type="button" class="text-stone-400 hover:text-stone-700" @click="close">×</button>
+                </div>
 
             <form class="space-y-4" @submit.prevent="submit">
                 <div>
@@ -250,6 +251,7 @@ function submit() {
                     </button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
 </template>

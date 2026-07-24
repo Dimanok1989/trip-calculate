@@ -10,6 +10,27 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+a,
+button,
+[role='button'] {
+    cursor: pointer;
+}
+
+button:disabled,
+button[disabled] {
+    cursor: not-allowed;
+}
+
+/* Hide scrollbars while keeping scroll (modals) */
+.scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+
 /* Expenses table: stacked labeled cards below md, normal table from md up */
 .expenses-table {
     width: 100%;
